@@ -62,11 +62,11 @@ const FormSchema = z.object({
   }),
   betAmount: z
     .number()
-    .min(0.01, {
-      message: "Bet amount must be at least .01 eth",
+    .min(1, {
+      message: "Bet amount must be at least 1 usdc",
     })
     .max(69, {
-      message: "Bet amount can be at most 69 eth",
+      message: "Bet amount can be at most 69 usdc",
     })
     .default(0),
 });
@@ -323,7 +323,7 @@ export default function BetForm({
                     />
                   </div>
                 </FormControl>
-                <FormDescription>{field.value} eth</FormDescription>
+                <FormDescription>{field.value} usdc</FormDescription>
                 <FormMessage />
               </FormItem>
             )}
