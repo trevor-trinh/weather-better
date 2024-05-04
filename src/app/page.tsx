@@ -23,7 +23,7 @@ import { useToast } from "@/components/ui/use-toast";
 import { useReadContract, useWriteContract } from "wagmi";
 import { abi } from "@/lib/fujiAbi";
 
-import { fujiContract, fujiUsdc } from "@/lib/utils";
+import { fujiContract, parseDate } from "@/lib/utils";
 
 // 替换为您的 WeatherAPI API 密钥
 const API_KEY = "f58dd287627a480792875942240405";
@@ -232,21 +232,26 @@ export default function Home() {
 
     const weatherTypes = ["Sunny", "Rainy", "Cloudy", "Snowy"];
 
-    const newPoolData: WeatherBet[] = poolsData.map((pool: Pool) => {
+    const newPoolData = poolsData.map((pool: Pool) => {
+      const parsedDate = parseDate(pool.day_time); // Convert string to Date object
       return {
         id: pool.pool_ID.toString(),
         location: pool.location,
-        date: pool.day_time,
+        date: parsedDate.toISOString().split("T")[0], // Use ISO format for consistency
         weather: weatherTypes[Number(pool.weather)],
         totalPool: 0,
         betRatio: 0,
       };
     });
 
-    (recordsData as Record[]).map((record: Record) => {
-      const pool = newPoolData.find(
-        (pool) => pool.id === record.pool_ID.toString()
-      );
+    // Sorting by date (newest first)
+    newPoolData.sort(
+      (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
+    );
+
+    // Process records data...
+    (recordsData as Record[]).forEach((record: Record) => {
+      const pool = newPoolData.find((p) => p.id === record.pool_ID.toString());
       if (pool) {
         pool.totalPool += Number(record.amount);
         if (record.bool_bet) {
@@ -255,33 +260,18 @@ export default function Home() {
       }
     });
 
-    // adjust the ratio to be a percentage
     newPoolData.forEach((pool) => {
       pool.betRatio = Math.floor((pool.betRatio / pool.totalPool) * 100);
       pool.totalPool = pool.totalPool / 10 ** 6;
     });
 
-    console.log("NEW POOL DATA", newPoolData);
-
-    const fetchedBets = await Promise.all(
-      exampleTransactions.map(async (tx) => {
-        const weather = await fetchWeather(tx.location);
-        return {
-          ...tx,
-          weather,
-          date: new Date().toISOString().split("T")[0],
-          totalPool: Math.floor(Math.random() * 10000) + 1000,
-          betRatio: Math.floor(Math.random() * 100) + 1,
-        };
-      })
-    );
+    console.log("NEW POOL DATA sorted by date", newPoolData);
 
     setGlobalBets([...newPoolData, ...exampleTransactions]);
   };
 
   useEffect(() => {
     if (!poolsData || !recordsData) return;
-
     fetchBets();
   }, [poolsData, recordsData, account.address]);
 

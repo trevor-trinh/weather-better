@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 import {
   DialogDescription,
@@ -157,14 +157,71 @@ export default function BetDialog({
       </div>
 
       <DialogFooter>
-        <Button
-          type="submit"
-          className="w-full bg-green-500 hover:bg-green-400"
-          onClick={handleSubmit}
-        >
-          BET
-        </Button>
+        <div className="flex flex-col gap-2 w-full">
+          <Button
+            type="submit"
+            className="w-full bg-green-500 hover:bg-green-400"
+            onClick={handleSubmit}
+          >
+            BET
+          </Button>
+          <CountdownButton targetDate={wBet.date} />
+        </div>
       </DialogFooter>
     </>
   );
 }
+
+const CountdownButton = ({ targetDate }) => {
+  const [countdown, setCountdown] = useState("");
+
+  const calculateCountdown = () => {
+    const now = new Date();
+    const endDate = new Date(targetDate);
+    const timeDiff = endDate.getTime() - now.getTime(); // difference in milliseconds
+
+    if (timeDiff > 0) {
+      // Calculate time difference parts
+      const days = Math.floor(timeDiff / (1000 * 60 * 60 * 24));
+      const hours = Math.floor(
+        (timeDiff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)
+      );
+      const minutes = Math.floor((timeDiff % (1000 * 60 * 60)) / (1000 * 60));
+      const seconds = Math.floor((timeDiff % (1000 * 60)) / 1000);
+
+      // Format countdown string
+      return `${days} day${days !== 1 ? "s" : ""} : ${hours} hour${
+        hours !== 1 ? "s" : ""
+      } : ${minutes} minute${minutes !== 1 ? "s" : ""} : ${seconds} second${
+        seconds !== 1 ? "s" : ""
+      }`;
+    } else {
+      return "The event date has arrived!";
+    }
+  };
+
+  useEffect(() => {
+    // Update countdown every second
+    const timer = setInterval(() => {
+      const newCountdown = calculateCountdown();
+      setCountdown(newCountdown);
+    }, 500);
+
+    return () => clearInterval(timer); // Cleanup on component unmount
+  }, [targetDate]);
+
+  return (
+    <button
+      className={`w-1/2 self-center py-2 ${
+        countdown !== "The event date has arrived!"
+          ? "bg-gray-500 cursor-not-allowed"
+          : "bg-yellow-600 hover:bg-yellow-500"
+      }`}
+      disabled={true}
+    >
+      {countdown !== "The event date has arrived!"
+        ? `Please check your wallet in ${countdown}!`
+        : countdown}
+    </button>
+  );
+};

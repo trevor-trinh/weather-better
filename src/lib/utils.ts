@@ -38,3 +38,29 @@ export const cities = {
 
 export const fujiContract = "0xdC712Cf71c4eEf7030F65fa759c4dA0F4Aeffa40";
 export const fujiUsdc = "0x5425890298aed601595a70AB815c96711a31Bc65";
+
+export function parseDate(dateStr: string) {
+  const months = [
+    "Jan",
+    "Feb",
+    "Mar",
+    "Apr",
+    "May",
+    "Jun",
+    "Jul",
+    "Aug",
+    "Sep",
+    "Oct",
+    "Nov",
+    "Dec",
+  ];
+  const suffixes = ["st", "nd", "rd", "th"];
+
+  // Replace suffixes in the day part
+  const cleanedDateStr = dateStr.replace(
+    new RegExp(suffixes.join("|"), "g"),
+    ""
+  );
+
+  return new Date(cleanedDateStr);
+}
