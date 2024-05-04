@@ -44,6 +44,12 @@ import {
 } from "@worldcoin/idkit";
 import { useRouter } from "next/navigation";
 import verifyWorldId from "@/lib/verifyWorldId";
+import {
+  useContract,
+  useTransferToken,
+  useContractWrite,
+  useAddress,
+} from "@thirdweb-dev/react";
 
 const weatherTypes = ["Sunny", "Rainy", "Cloudy", "Snowy"] as const;
 const cities = [
@@ -82,6 +88,7 @@ export default function BetForm({
   const { toast } = useToast();
   const { setOpen } = useIDKit();
   const router = useRouter();
+  const address = useAddress();
 
   const watchedFields = form.watch(["date", "location", "weather"]);
 
@@ -133,6 +140,7 @@ export default function BetForm({
           ),
         });
         // TODO: TRIGGER METAMASK TRANSACTION
+        handleWeb3();
         router.push("/");
       } else {
         toast({
@@ -149,6 +157,43 @@ export default function BetForm({
       console.error("Verification error:", error);
       // Handle unexpected errors (e.g., network issues)
     }
+  };
+
+  const fujiContract = "0xaC161c23B20d59942c1487fB6CAfeDA35FCa4Ed3";
+  const fujiUsdc = "0x5425890298aed601595a70AB815c96711a31Bc65";
+
+  const { contract } = useContract(fujiContract);
+  const { mutate, mutateAsync, isLoading, error } = useContractWrite(
+    contract,
+    "createPool"
+  );
+
+  //   uint256 _pool_ID, // 测试从100开始
+  //         string calldata _location,
+  //         string calldata _day_time,
+  //         uint256 _weather, // 假设这里传递的是weathers枚举的整数索引
+  //         address _owner_address,
+  //         address _token_address
+
+  const handleWeb3 = async () => {
+    console.log("HANDLING WEB3");
+
+    const poolId =
+      parseInt(Date.now() / 1000) + Math.floor(Math.random() * 1000);
+    const location = form.getValues("location");
+    const dayTime = format(form.getValues("date"), "PPP");
+    const weather = weatherTypes.indexOf(form.getValues("weather"));
+    const ownerAddress = address;
+    const tokenAddress = fujiUsdc;
+
+    console.log("MUTATING");
+    console.log(poolId, location, dayTime, weather);
+
+    const result = await mutateAsync({
+      args: [poolId, location, dayTime, weather, ownerAddress, tokenAddress],
+    });
+
+    console.log(result);
   };
 
   return (
