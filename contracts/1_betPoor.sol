@@ -3,6 +3,14 @@ pragma solidity 0.8.20;
 
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
+interface IWeatherFunctions {
+    // 以下函数签名应与WeatherFunctions合约中的getTemperature函数完全一致
+    function getTemperature(string memory _city)
+        external
+        returns (bytes32 requestId);
+    function lastTemperature() external view returns (string memory);
+}
+
 contract BetPool {
     enum weathers {
         sunday,
@@ -31,7 +39,7 @@ contract BetPool {
     }
 
     // 用于快速根据pool_ID 索引 pool的信息
-    mapping(uint256 => Pool) private poolInfo;
+    mapping(uint256 => Pool) private poolInfo; // poolInfo[pool_ID].location
 
     // 下注记录
     struct Record {
@@ -127,11 +135,11 @@ contract BetPool {
         // 返回新创建的pool的索引或者pool_ID，以供外部引用
         last_pool = newPool.pool_ID;
 
-        userBetERC20(_owner_address,_amount,_pool_ID,1,_bool_bet);
+        userBetERC20(_owner_address, _amount, _pool_ID, 1, _bool_bet);
 
         return last_pool;
     }
-    
+
     // 池子清算
     function poolSettlement(uint256 _pool_ID) public {
         //计算池子总资金 获取天气 并存储至result
@@ -183,13 +191,21 @@ contract BetPool {
         }
     }
 
-    uint256 test = 1;
+    // 通过ABI和地址创建WeatherFunctions合约的接口
+    address public weatherFunctionsAddress =
+        0x1c59597dE4668a947d992994DBf6AE18f269F157;
+    IWeatherFunctions public weatherFunctions =
+        IWeatherFunctions(weatherFunctionsAddress);
+    string public last_temp;
 
     // 获取天气 根据poolID读取location 和weather押注的类型
-    function getWeather(uint256 _pool_ID) internal returns (bool) {
-        // Pool memory pool = poolInfo[_pool_ID];
-        test = _pool_ID;
-        return true; // 意味着这个池子只有押True才能赢
+    function getWeather(uint256 _pool_ID)
+        public 
+        returns (bool)
+    {
+        weatherFunctions.getTemperature(poolInfo[_pool_ID].location);
+        last_temp = weatherFunctions.lastTemperature();
+        return keccak256(abi.encodePacked(last_temp)) == keccak256("Clear"); // 意味着这个池子只有押True才能赢
     }
 
     function safeTransfer(
