@@ -63,7 +63,7 @@ const fetchWeather = async (location: string) => {
   const encodedLocation = encodeURIComponent(location);
   try {
     const response = await axios.get(
-      `https://api.weatherapi.com/v1/current.json?key=${API_KEY}&q=${encodedLocation}&lang=zh`
+      `https://api.weatherapi.com/v1/current.json?key=${API_KEY}&q=${encodedLocation}&lang=en`
     );
     return response.data.current.condition.text;
   } catch (error) {
