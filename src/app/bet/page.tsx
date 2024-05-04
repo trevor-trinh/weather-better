@@ -40,7 +40,7 @@ export default function BetPage() {
       </div>
 
       <div className="flex w-1/2 justify-center pt-8">
-        <MUIWeatherWidget city={selectedCity} />
+        {/* <MUIWeatherWidget city={selectedCity} /> */}
       </div>
     </div>
   );
