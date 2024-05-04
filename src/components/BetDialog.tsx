@@ -12,7 +12,6 @@ import { Button } from "@/components/ui/button";
 import { WeatherBet, Bet } from "@/lib/types";
 import { cities, weatherIcon } from "@/lib/utils";
 import MUIWeatherWidget from "@/components/MUIWeatherWidget";
-import { useActiveAccount } from "thirdweb/react";
 import { useToast } from "@/components/ui/use-toast";
 import {
   IDKitWidget,
@@ -21,7 +20,7 @@ import {
   useIDKit,
 } from "@worldcoin/idkit";
 import verifyWorldId from "@/lib/verifyWorldId";
-import { useAddress } from "@thirdweb-dev/react";
+import { useAccount } from "wagmi";
 
 export default function BetDialog({
   wBet,
@@ -36,7 +35,7 @@ export default function BetDialog({
 }) {
   const [selectedBet, setSelectedBet] = useState<"pro" | "con" | undefined>();
   const [betAmount, setBetAmount] = useState(0);
-  const address = useAddress();
+  const account = useAccount();
   const { toast } = useToast();
 
   const handleBetSelection = (betType: "pro" | "con" | undefined) => {
@@ -70,7 +69,7 @@ export default function BetDialog({
       return;
     }
 
-    if (!address) {
+    if (!account.isConnected) {
       toast({
         variant: "destructive",
         title: "Uh oh! Something went wrong.",
@@ -82,7 +81,7 @@ export default function BetDialog({
     const bet: Bet = {
       betType: selectedBet === "pro" ? true : false,
       betAmount: betAmount,
-      userAddress: address,
+      userAddress: account.address,
       weatherBetId: wBet.id,
     };
 

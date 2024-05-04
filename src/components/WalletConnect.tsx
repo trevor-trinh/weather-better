@@ -1,11 +1,11 @@
 "use client";
 
-import { ConnectWallet } from "@thirdweb-dev/react";
+import { ConnectButton } from "@rainbow-me/rainbowkit";
 
 export default function WalletConnect() {
   return (
     <>
-      <ConnectWallet />
+      <ConnectButton />{" "}
     </>
   );
 }

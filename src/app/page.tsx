@@ -3,7 +3,6 @@ import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { useState, useEffect, useRef } from "react";
 import BetCard from "@/components/BetCard";
-import { useActiveAccount } from "thirdweb/react";
 import { Bet, WeatherBet } from "@/lib/types";
 import MUIWeatherWidget from "@/components/MUIWeatherWidget";
 import { cities } from "@/lib/utils";
@@ -11,7 +10,7 @@ import Slider from "react-slick";
 import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
 import axios from "axios";
-import { useAddress } from "@thirdweb-dev/react";
+import { useAccount } from "wagmi";
 import {
   IDKitWidget,
   VerificationLevel,
@@ -20,7 +19,6 @@ import {
 } from "@worldcoin/idkit";
 import verifyWorldId from "@/lib/verifyWorldId";
 import { useToast } from "@/components/ui/use-toast";
-import { useContract, useTransferToken } from "@thirdweb-dev/react";
 
 const fujiContract = "0xaC161c23B20d59942c1487fB6CAfeDA35FCa4Ed3";
 const fujiUsdc = "0x5425890298aed601595a70AB815c96711a31Bc65";
@@ -89,7 +87,7 @@ export default function Home() {
   const [activeTab, setActiveTab] = useState<"Global" | "Me">("Global");
   const [globalBets, setGlobalBets] = useState<WeatherBet[]>([]);
   const [myBets, setMyBets] = useState<WeatherBet[]>([]);
-  const address = useAddress();
+  const account = useAccount();
   const { setOpen } = useIDKit();
   const { toast } = useToast();
   const [currentData, setCurrentData] = useState<Bet>();
@@ -126,7 +124,7 @@ export default function Home() {
           ),
         });
 
-        handleWeb3();
+        // handleWeb3();
       } else {
         toast({
           variant: "destructive",
@@ -146,23 +144,23 @@ export default function Home() {
 
   // WEB3 LOGIC PART
   // transfer fuji usdc to contract
-  const { contract } = useContract(fujiUsdc);
-  const {
-    mutate: transferTokens,
-    isLoading,
-    error,
-  } = useTransferToken(contract);
+  // const { contract } = useContract(fujiUsdc);
+  // const {
+  //   mutate: transferTokens,
+  //   isLoading,
+  //   error,
+  // } = useTransferToken(contract);
 
-  const handleWeb3 = async () => {
-    console.log("HANDLING WEB3");
-    console.log(currentData);
-    console.log(fujiContract);
+  // const handleWeb3 = async () => {
+  //   console.log("HANDLING WEB3");
+  //   console.log(currentData);
+  //   console.log(fujiContract);
 
-    transferTokens({
-      to: fujiContract,
-      amount: currentData?.betAmount,
-    });
-  };
+  //   transferTokens({
+  //     to: fujiContract,
+  //     amount: currentData?.betAmount,
+  //   });
+  // };
 
   // FETCHING DATA ENDPOINT
   const fetchBets = async () => {
@@ -259,7 +257,7 @@ export default function Home() {
               setCurrentData={setCurrentData}
             />
           ))
-        ) : address ? (
+        ) : account.isConnected ? (
           myBets.map((tx) => (
             <BetCard
               key={tx.id}

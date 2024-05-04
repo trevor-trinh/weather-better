@@ -44,21 +44,15 @@ import {
 } from "@worldcoin/idkit";
 import { useRouter } from "next/navigation";
 import verifyWorldId from "@/lib/verifyWorldId";
-import {
-  useContract,
-  useTransferToken,
-  useContractWrite,
-  useAddress,
-} from "@thirdweb-dev/react";
 
 import {
-  prepareContractCall,
-  getContract,
-  createThirdwebClient,
-  defineChain,
-} from "thirdweb";
-import { useSendTransaction } from "thirdweb/react";
-import { createWallet } from "thirdweb/wallets";
+  useAccount,
+  useWriteContract,
+  useWaitForTransactionReceipt,
+} from "wagmi";
+import { abi } from "@/lib/fujiAbi";
+import { config } from "@/lib/config";
+import { writeContract } from "@wagmi/core";
 
 const weatherTypes = ["Sunny", "Rainy", "Cloudy", "Snowy"] as const;
 const cities = [
@@ -86,10 +80,6 @@ const FormSchema = z.object({
     .default(0),
 });
 
-const client = createThirdwebClient({
-  clientId: process.env.NEXT_PUBLIC_THIRDWEB_CLIENT_ID,
-});
-
 export default function BetForm({
   setPreviewData,
 }: {
@@ -101,7 +91,7 @@ export default function BetForm({
   const { toast } = useToast();
   const { setOpen } = useIDKit();
   const router = useRouter();
-  const address = useAddress();
+  const account = useAccount();
 
   const watchedFields = form.watch(["date", "location", "weather"]);
 
@@ -152,9 +142,8 @@ export default function BetForm({
             </pre>
           ),
         });
-        // TODO: TRIGGER METAMASK TRANSACTION
         handleWeb3();
-        router.push("/");
+        // router.push("/");
       } else {
         toast({
           variant: "destructive",
@@ -172,23 +161,6 @@ export default function BetForm({
     }
   };
 
-  const fujiContract = "0xaC161c23B20d59942c1487fB6CAfeDA35FCa4Ed3";
-  const fujiUsdc = "0x5425890298aed601595a70AB815c96711a31Bc65";
-
-  // const { contract } = useContract(fujiContract);
-  // const { mutate, mutateAsync, isLoading, error } = useContractWrite(
-  //   contract,
-  //   "createPool"
-  // );
-
-  const contract = getContract({
-    client: client,
-    chain: defineChain(43113),
-    address: fujiContract,
-  });
-
-  const { mutate: sendTransaction, isPending } = useSendTransaction();
-
   //   uint256 _pool_ID, // 测试从100开始
   //         string calldata _location,
   //         string calldata _day_time,
@@ -196,10 +168,13 @@ export default function BetForm({
   //         address _owner_address,
   //         address _token_address
 
-  const wallet = createWallet("io.metamask");
+  const fujiContract = "0xaC161c23B20d59942c1487fB6CAfeDA35FCa4Ed3";
+  const fujiUsdc = "0x5425890298aed601595a70AB815c96711a31Bc65";
+
+  // const { writeContract } = useWriteContract();
 
   const handleWeb3 = async () => {
-    await wallet.connect();
+    // await wallet.connect();
     console.log("HANDLING WEB3");
 
     const poolId =
@@ -207,23 +182,36 @@ export default function BetForm({
     const location = form.getValues("location");
     const dayTime = format(form.getValues("date"), "PPP");
     const weather = weatherTypes.indexOf(form.getValues("weather"));
-    const ownerAddress = address;
+    const ownerAddress = account.address;
     const tokenAddress = fujiUsdc;
 
-    console.log("MUTATING");
-    console.log(poolId, location, dayTime, weather);
-
-    const transaction = prepareContractCall({
-      contract,
-      method:
-        "function createPool(uint256 _pool_ID, string calldata _location, string calldata _day_time, uint256 _weather, address _owner_address, address _token_address)",
-      params: [poolId, location, dayTime, weather, ownerAddress, tokenAddress],
-      // value: 20,
+    // create pool fuji contract
+    const result = await writeContract(config, {
+      abi,
+      address: fujiContract,
+      functionName: "createPool",
+      args: [
+        BigInt(poolId),
+        location,
+        dayTime,
+        BigInt(weather),
+        ownerAddress,
+        tokenAddress,
+      ],
     });
-    sendTransaction(transaction, wallet);
 
-    // const result = await mutateAsync({
-    //   args: [poolId, location, dayTime, weather, ownerAddress, tokenAddress],
+    // writeContract({
+    //   abi: fujiAbi,
+    //   address: fujiContract,
+    //   functionName: "createPool",
+    // args: [
+    //   BigInt(poolId),
+    //   location,
+    //   dayTime,
+    //   BigInt(weather),
+    //   ownerAddress,
+    //   tokenAddress,
+    // ],
     // });
 
     console.log("SUCCESS");
