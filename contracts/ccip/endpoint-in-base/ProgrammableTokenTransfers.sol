@@ -65,7 +65,8 @@ contract ProgrammableTokenTransfers is CCIPReceiver, OwnerIsCreator {
 
     IERC20 private s_linkToken;
 
-    /// @notice Constructor initializes the contract with the router address.
+    /// @notice Constructor initializes the contract with the router address. 
+    /// The router and LINK token address is hard-coded here.
     constructor() CCIPReceiver(0xD3b06cEbF099CE7DA4AcCf578aaebFDBd6e88a93) {
         s_linkToken = IERC20(0xE4aB69C077896252FAFBD49EFD26B5D171A32410);
     }

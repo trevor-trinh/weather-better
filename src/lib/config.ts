@@ -1,12 +1,12 @@
 import { http, createConfig } from "wagmi";
-import { sepolia, avalancheFuji } from "wagmi/chains";
+import { baseSepolia, avalancheFuji } from "wagmi/chains";
 import { metaMask } from "wagmi/connectors";
 
 export const config = createConfig({
-  chains: [avalancheFuji, sepolia],
+  chains: [avalancheFuji, baseSepolia],
   connectors: [metaMask()],
   transports: {
     [avalancheFuji.id]: http(),
-    [sepolia.id]: http(),
+    [baseSepolia.id]: http(),
   },
 });
