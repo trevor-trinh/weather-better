@@ -20,7 +20,7 @@ import {
 import verifyWorldId from "@/lib/verifyWorldId";
 import { useToast } from "@/components/ui/use-toast";
 
-import { useReadContract } from "wagmi";
+import { useReadContract, useWriteContract } from "wagmi";
 import { abi } from "@/lib/fujiAbi";
 
 import { fujiContract, fujiUsdc } from "@/lib/utils";
@@ -146,7 +146,7 @@ export default function Home() {
           ),
         });
 
-        // handleWeb3();
+        handleWeb3();
       } else {
         toast({
           variant: "destructive",
@@ -162,6 +162,48 @@ export default function Home() {
       console.error("Verification error:", error);
       // Handle unexpected errors (e.g., network issues)
     }
+  };
+
+  const { writeContractAsync } = useWriteContract();
+
+  const handleWeb3 = async () => {
+    // make a bet
+    console.log(
+      "Betting in a pool",
+      JSON.stringify(
+        {
+          userAddress: account.address,
+          betAmount: currentData.betAmount,
+          weatherBetId: currentData.weatherBetId,
+          chainID: 1,
+          betType: currentData.betType,
+        },
+        null,
+        2
+      )
+    );
+
+    const result = await writeContractAsync({
+      abi,
+      address: fujiContract,
+      functionName: "userBetERC20",
+      args: [
+        account.address,
+        BigInt(currentData.betAmount * 10 ** 6),
+        BigInt(currentData.weatherBetId),
+        1,
+        currentData.betType,
+      ],
+    });
+
+    toast({
+      title: "Bet Placed!",
+      description: (
+        <pre className="mt-2 w-[340px] rounded-md bg-green-700 p-4">
+          <code className="text-white">{result}</code>
+        </pre>
+      ),
+    });
   };
 
   // FETCHING DATA ENDPOINT

@@ -10,16 +10,9 @@ import { Input } from "@/components/ui/input";
 import { Progress } from "@/components/ui/progress";
 import { Button } from "@/components/ui/button";
 import { WeatherBet, Bet } from "@/lib/types";
-import { cities, weatherIcon } from "@/lib/utils";
-import MUIWeatherWidget from "@/components/MUIWeatherWidget";
+import { weatherIcon } from "@/lib/utils";
 import { useToast } from "@/components/ui/use-toast";
-import {
-  IDKitWidget,
-  VerificationLevel,
-  ISuccessResult,
-  useIDKit,
-} from "@worldcoin/idkit";
-import verifyWorldId from "@/lib/verifyWorldId";
+
 import { useAccount } from "wagmi";
 
 export default function BetDialog({

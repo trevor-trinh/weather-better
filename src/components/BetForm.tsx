@@ -45,14 +45,8 @@ import {
 import { useRouter } from "next/navigation";
 import verifyWorldId from "@/lib/verifyWorldId";
 
-import {
-  useAccount,
-  useWriteContract,
-  useWaitForTransactionReceipt,
-} from "wagmi";
+import { useAccount, useWriteContract } from "wagmi";
 import { abi } from "@/lib/fujiAbi";
-import { config } from "@/lib/config";
-import { writeContracts } from "@wagmi/core/experimental";
 import { fujiContract, fujiUsdc } from "@/lib/utils";
 
 const weatherTypes = ["Sunny", "Rainy", "Cloudy", "Snowy"] as const;
