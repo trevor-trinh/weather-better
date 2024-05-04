@@ -47,12 +47,9 @@ export default function UnlimitButton() {
     <>
       <button
         onClick={handleOnClick}
-        className={`mx-2 text-white font-bold py-2 px-4 rounded ${
-          !account.isConnected
-            ? "bg-gray-400 cursor-not-allowed"
-            : "bg-blue-500 hover:bg-blue-400"
-        }`}
-        disabled={!account.isConnected}
+        className={
+          "mx-2 text-white font-bold py-2 px-4 rounded bg-blue-500 hover:bg-blue-400"
+        }
       >
         Unlimit Onramp
       </button>
