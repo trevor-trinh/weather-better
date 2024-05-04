@@ -1,4 +1,7 @@
+"use client";
+
 import Link from "next/link";
+import { useState, useRef, useEffect } from "react";
 import { ThemeToggle } from "@/components/theme-toggle";
 import WalletConnect from "@/components/WalletConnect";
 import { Separator } from "@/components/ui/separator";
@@ -7,17 +10,47 @@ import SupportDialog from "@/components/SupportDialog";
 import UnlimitButton from "./UnlimitButton";
 
 export default function PageHeader() {
+  const [weatherIcon, setWeatherIcon] = useState("🌦️");
+  const weatherIcons = ["🌦️", "🌧️", "☀️", "👓"];
+
+  const intervalRef = useRef<NodeJS.Timeout | number | null>(null);
+
+  const startCyclingIcons = () => {
+    intervalRef.current = setInterval(() => {
+      setWeatherIcon((prevIcon) => {
+        const currentIndex = weatherIcons.indexOf(prevIcon);
+        const nextIndex = (currentIndex + 1) % weatherIcons.length;
+        return weatherIcons[nextIndex];
+      });
+    }, 50);
+  };
+
+  const stopCyclingIcons = () => {
+    if (intervalRef.current) {
+      clearInterval(intervalRef.current);
+    }
+  };
+
+  useEffect(() => {
+    return () => {
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+      }
+    };
+  }, []);
+
   return (
     <div className="sticky top-0 z-50 bg-inherit">
       <header className="flex justify-between items-center w-full px-8 py-2">
         <nav className="flex gap-8 items-center">
           <Link
-            className="items-center font-bold text-lg hover:text-indigo-500"
+            onMouseEnter={startCyclingIcons}
+            onMouseLeave={stopCyclingIcons}
+            className="items-center font-bold text-lg hover:text-indigo-500 transition-colors"
             href="/"
           >
-            WeatherBetter
+            {weatherIcon} WeatherBetter
           </Link>
-
           <Link
             className="text-sm font-medium hover:underline underline-offset-4 hover:text-indigo-500"
             href="/"
