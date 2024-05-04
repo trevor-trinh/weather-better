@@ -51,6 +51,15 @@ import {
   useAddress,
 } from "@thirdweb-dev/react";
 
+import {
+  prepareContractCall,
+  getContract,
+  createThirdwebClient,
+  defineChain,
+} from "thirdweb";
+import { useSendTransaction } from "thirdweb/react";
+import { createWallet } from "thirdweb/wallets";
+
 const weatherTypes = ["Sunny", "Rainy", "Cloudy", "Snowy"] as const;
 const cities = [
   { label: "Beijing, China", value: "beijing" },
@@ -75,6 +84,10 @@ const FormSchema = z.object({
       message: "Bet amount can be at most 69 usdc",
     })
     .default(0),
+});
+
+const client = createThirdwebClient({
+  clientId: process.env.NEXT_PUBLIC_THIRDWEB_CLIENT_ID,
 });
 
 export default function BetForm({
@@ -162,11 +175,19 @@ export default function BetForm({
   const fujiContract = "0xaC161c23B20d59942c1487fB6CAfeDA35FCa4Ed3";
   const fujiUsdc = "0x5425890298aed601595a70AB815c96711a31Bc65";
 
-  const { contract } = useContract(fujiContract);
-  const { mutate, mutateAsync, isLoading, error } = useContractWrite(
-    contract,
-    "createPool"
-  );
+  // const { contract } = useContract(fujiContract);
+  // const { mutate, mutateAsync, isLoading, error } = useContractWrite(
+  //   contract,
+  //   "createPool"
+  // );
+
+  const contract = getContract({
+    client: client,
+    chain: defineChain(43113),
+    address: fujiContract,
+  });
+
+  const { mutate: sendTransaction, isPending } = useSendTransaction();
 
   //   uint256 _pool_ID, // 测试从100开始
   //         string calldata _location,
@@ -175,7 +196,10 @@ export default function BetForm({
   //         address _owner_address,
   //         address _token_address
 
+  const wallet = createWallet("io.metamask");
+
   const handleWeb3 = async () => {
+    await wallet.connect();
     console.log("HANDLING WEB3");
 
     const poolId =
@@ -189,11 +213,20 @@ export default function BetForm({
     console.log("MUTATING");
     console.log(poolId, location, dayTime, weather);
 
-    const result = await mutateAsync({
-      args: [poolId, location, dayTime, weather, ownerAddress, tokenAddress],
+    const transaction = prepareContractCall({
+      contract,
+      method:
+        "function createPool(uint256 _pool_ID, string calldata _location, string calldata _day_time, uint256 _weather, address _owner_address, address _token_address)",
+      params: [poolId, location, dayTime, weather, ownerAddress, tokenAddress],
+      // value: 20,
     });
+    sendTransaction(transaction, wallet);
 
-    console.log(result);
+    // const result = await mutateAsync({
+    //   args: [poolId, location, dayTime, weather, ownerAddress, tokenAddress],
+    // });
+
+    console.log("SUCCESS");
   };
 
   return (
