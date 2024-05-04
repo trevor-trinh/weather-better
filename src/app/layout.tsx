@@ -26,6 +26,8 @@ export default function RootLayout({
     "NEXT_PUBLIC_WLD_APP_ID",
     "NEXT_PUBLIC_WLD_CREATE_ACTION",
     "NEXT_PUBLIC_WLD_BET_ACTION",
+    "SECRET_KEY",
+    "API_KEY",
   ];
 
   requiredEnv.forEach((env) => {

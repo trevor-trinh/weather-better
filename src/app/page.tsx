@@ -10,7 +10,12 @@ import { cities } from "@/lib/utils";
 import Slider from "react-slick";
 import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
+import axios from "axios";
 
+// 替换为您的 WeatherAPI API 密钥
+const API_KEY = "f58dd287627a480792875942240405";
+
+// 示例交易数据
 const exampleTransactions: WeatherBet[] = [
   {
     id: "1",
@@ -54,6 +59,19 @@ const exampleTransactions: WeatherBet[] = [
   },
 ];
 
+const fetchWeather = async (location: string) => {
+  const encodedLocation = encodeURIComponent(location);
+  try {
+    const response = await axios.get(
+      `https://api.weatherapi.com/v1/current.json?key=${API_KEY}&q=${encodedLocation}&lang=zh`
+    );
+    return response.data.current.condition.text;
+  } catch (error) {
+    console.error("Weather API error:", error);
+    return "Unavailable";
+  }
+};
+
 export default function Home() {
   const [activeTab, setActiveTab] = useState<"Global" | "Me">("Global");
   const [globalBets, setGlobalBets] = useState<WeatherBet[]>([]);
@@ -61,17 +79,30 @@ export default function Home() {
   const account = useActiveAccount();
 
   const fetchBets = async () => {
-    const fetchedTransactions = exampleTransactions;
-    setGlobalBets(fetchedTransactions);
-    setMyBets(
-      fetchedTransactions.filter((tx) => tx.location === "San Francisco, CA")
+    // 更新每个交易的实时天气
+    const fetchedBets = await Promise.all(
+      exampleTransactions.map(async (tx) => {
+        const weather = await fetchWeather(tx.location);
+        return {
+          ...tx,
+          weather,
+          date: new Date().toISOString().split("T")[0],
+          totalPool: Math.floor(Math.random() * 10000) + 1000,
+          betRatio: Math.floor(Math.random() * 100) + 1,
+        };
+      })
     );
+
+    // 更新 globalBets 和 myBets 状态
+    setGlobalBets(fetchedBets);
+    setMyBets(fetchedBets.filter((tx) => tx.location === "San Francisco, CA"));
   };
 
   useEffect(() => {
     fetchBets();
   }, []);
 
+  // 轮播设置
   const sliderSettings = {
     dots: true,
     infinite: true,
@@ -131,7 +162,7 @@ export default function Home() {
         ) : account?.address ? (
           myBets.map((tx) => <BetCard key={tx.id} {...tx} />)
         ) : (
-          <p>please connect wallet to view your bets</p>
+          <p>Please connect your wallet to view your bets</p>
         )}
       </div>
     </>
