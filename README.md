@@ -60,5 +60,5 @@ bun dev
 
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
-The CCIP contract code was modified based on the official demo. You can modify and replace it with the original link to deploy it. For specific deployment parameters, refer to the Chainlink documentation.
+The CCIP contract code was modified based on the official demo. You can modify and replace the original files with those in `contract` to deploy it. For specific deployment parameters, refer to the Chainlink documentation.
 
