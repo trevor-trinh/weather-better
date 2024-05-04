@@ -120,9 +120,9 @@ export default function Home() {
 
         <div className="max-w-md">
           <Slider {...sliderSettings}>
-            <MUIWeatherWidget city={cities.sydney} />
+            {/* <MUIWeatherWidget city={cities.sydney} />
             <MUIWeatherWidget city={cities.beijing} />
-            <MUIWeatherWidget city={cities.berkeley} />
+            <MUIWeatherWidget city={cities.berkeley} /> */}
           </Slider>
         </div>
         <Link href="/bet">
