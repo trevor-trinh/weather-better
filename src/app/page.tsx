@@ -4,13 +4,26 @@ import Link from "next/link";
 import { useState, useEffect, useRef } from "react";
 import BetCard from "@/components/BetCard";
 import { useActiveAccount } from "thirdweb/react";
-import { WeatherBet } from "@/lib/types";
+import { Bet, WeatherBet } from "@/lib/types";
 import MUIWeatherWidget from "@/components/MUIWeatherWidget";
 import { cities } from "@/lib/utils";
 import Slider from "react-slick";
 import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
 import axios from "axios";
+import { useAddress } from "@thirdweb-dev/react";
+import {
+  IDKitWidget,
+  VerificationLevel,
+  ISuccessResult,
+  useIDKit,
+} from "@worldcoin/idkit";
+import verifyWorldId from "@/lib/verifyWorldId";
+import { useToast } from "@/components/ui/use-toast";
+import { useContract, useTransferToken } from "@thirdweb-dev/react";
+
+const fujiContract = "0xaC161c23B20d59942c1487fB6CAfeDA35FCa4Ed3";
+const fujiUsdc = "0x5425890298aed601595a70AB815c96711a31Bc65";
 
 // 替换为您的 WeatherAPI API 密钥
 const API_KEY = "f58dd287627a480792875942240405";
@@ -76,8 +89,82 @@ export default function Home() {
   const [activeTab, setActiveTab] = useState<"Global" | "Me">("Global");
   const [globalBets, setGlobalBets] = useState<WeatherBet[]>([]);
   const [myBets, setMyBets] = useState<WeatherBet[]>([]);
-  const account = useActiveAccount();
+  const address = useAddress();
+  const { setOpen } = useIDKit();
+  const { toast } = useToast();
+  const [currentData, setCurrentData] = useState<Bet>();
 
+  // WORLDCOIN
+  const onSuccess = (result: ISuccessResult) => {
+    toast({
+      title: "Sending WorldID Proof to backend...",
+      description: (
+        <pre className="mt-2 w-[340px] rounded-md bg-slate-950 p-4">
+          <code className="text-white">{JSON.stringify(result, null, 2)}</code>
+        </pre>
+      ),
+    });
+
+    handleVerifyWorldId(result);
+  };
+
+  const handleVerifyWorldId = async (result: ISuccessResult) => {
+    try {
+      const verificationResult = await verifyWorldId(
+        result,
+        process.env.NEXT_PUBLIC_WLD_BET_ACTION as string
+      );
+      if (verificationResult.code === "success") {
+        toast({
+          title: "Verified WorldID Proof!",
+          description: (
+            <pre className="mt-2 w-[340px] rounded-md bg-green-700 p-4">
+              <code className="text-white">
+                {JSON.stringify(verificationResult.detail, null, 2)}
+              </code>
+            </pre>
+          ),
+        });
+
+        handleWeb3();
+      } else {
+        toast({
+          variant: "destructive",
+          title: "Failed to verify!",
+          description: (
+            <pre className="mt-2 w-[340px] rounded-md bg-red-700 p-4">
+              <code className="text-white">{verificationResult.detail}</code>
+            </pre>
+          ),
+        });
+      }
+    } catch (error) {
+      console.error("Verification error:", error);
+      // Handle unexpected errors (e.g., network issues)
+    }
+  };
+
+  // WEB3 LOGIC PART
+  // transfer fuji usdc to contract
+  const { contract } = useContract(fujiUsdc);
+  const {
+    mutate: transferTokens,
+    isLoading,
+    error,
+  } = useTransferToken(contract);
+
+  const handleWeb3 = async () => {
+    console.log("HANDLING WEB3");
+    console.log(currentData);
+    console.log(fujiContract);
+
+    transferTokens({
+      to: fujiContract,
+      amount: currentData?.betAmount,
+    });
+  };
+
+  // FETCHING DATA ENDPOINT
   const fetchBets = async () => {
     // 更新每个交易的实时天气
     const fetchedBets = await Promise.all(
@@ -113,6 +200,12 @@ export default function Home() {
 
   return (
     <>
+      <IDKitWidget
+        app_id={process.env.NEXT_PUBLIC_WLD_APP_ID as `app_${string}`}
+        action={process.env.NEXT_PUBLIC_WLD_BET_ACTION!}
+        verification_level={VerificationLevel.Device}
+        onSuccess={onSuccess}
+      />
       <div className="flex flex-col gap-4 items-center min-w-full">
         <h1 className="text-3xl font-semibold tracking-tight">
           #1 Global Weather Better
@@ -158,9 +251,23 @@ export default function Home() {
 
       <div className="grid grid-cols-3 gap-8 w-full">
         {activeTab === "Global" ? (
-          globalBets.map((tx) => <BetCard key={tx.id} {...tx} />)
-        ) : account?.address ? (
-          myBets.map((tx) => <BetCard key={tx.id} {...tx} />)
+          globalBets.map((tx) => (
+            <BetCard
+              key={tx.id}
+              wBet={tx}
+              openWorldId={setOpen}
+              setCurrentData={setCurrentData}
+            />
+          ))
+        ) : address ? (
+          myBets.map((tx) => (
+            <BetCard
+              key={tx.id}
+              wBet={tx}
+              openWorldId={setOpen}
+              setCurrentData={setCurrentData}
+            />
+          ))
         ) : (
           <p>Please connect your wallet to view your bets</p>
         )}

@@ -1,11 +1,11 @@
 "use client";
 
 import { GateFiSDK, GateFiDisplayModeEnum } from "@gatefi/js-sdk";
-import { useState, useEffect, useRef } from "react";
-import { useActiveAccount } from "thirdweb/react";
+import { useState, useRef } from "react";
+import { useAddress } from "@thirdweb-dev/react";
 
 export default function UnlimitButton() {
-  const account = useActiveAccount();
+  const address = useAddress();
   const overlayInstanceSDK = useRef<GateFiSDK | null>(null);
   const [isOverlayVisible, setIsOverlayVisible] = useState(false);
 
@@ -27,7 +27,7 @@ export default function UnlimitButton() {
         displayMode: GateFiDisplayModeEnum.Overlay,
         nodeSelector: "#overlay-button",
         isSandbox: true,
-        walletAddress: account?.address,
+        walletAddress: address,
         email: "your@emailaddress.com",
         externalId: randomString,
         defaultFiat: {
@@ -48,11 +48,11 @@ export default function UnlimitButton() {
       <button
         onClick={handleOnClick}
         className={`mx-2 text-white font-bold py-2 px-4 rounded ${
-          !account?.address
+          !address
             ? "bg-gray-400 cursor-not-allowed"
             : "bg-blue-500 hover:bg-blue-400"
         }`}
-        disabled={!account?.address}
+        disabled={!address}
       >
         Unlimit Onramp
       </button>

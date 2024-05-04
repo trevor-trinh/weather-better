@@ -18,6 +18,7 @@ export default function ThirdwebProvider({ children }: any) {
         walletConnect(),
       ]}
       clientId={process.env.NEXT_PUBLIC_THIRDWEB_CLIENT_ID}
+      activeChain={43113}
     >
       {children}
     </Provider>

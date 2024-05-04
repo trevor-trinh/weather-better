@@ -21,19 +21,22 @@ import {
   useIDKit,
 } from "@worldcoin/idkit";
 import verifyWorldId from "@/lib/verifyWorldId";
+import { useAddress } from "@thirdweb-dev/react";
 
 export default function BetDialog({
   wBet,
   setOpen,
   setDialogOpen,
+  setCurrentData,
 }: {
   wBet: WeatherBet;
   setOpen: (open: boolean) => void;
   setDialogOpen: (open: boolean) => void;
+  setCurrentData: any;
 }) {
   const [selectedBet, setSelectedBet] = useState<"pro" | "con" | undefined>();
   const [betAmount, setBetAmount] = useState(0);
-  const account = useActiveAccount();
+  const address = useAddress();
   const { toast } = useToast();
 
   const handleBetSelection = (betType: "pro" | "con" | undefined) => {
@@ -49,8 +52,6 @@ export default function BetDialog({
   };
 
   const handleSubmit = () => {
-    // TODO: change this to zod form validation
-
     if (!selectedBet) {
       toast({
         variant: "destructive",
@@ -69,7 +70,7 @@ export default function BetDialog({
       return;
     }
 
-    if (!account) {
+    if (!address) {
       toast({
         variant: "destructive",
         title: "Uh oh! Something went wrong.",
@@ -81,13 +82,12 @@ export default function BetDialog({
     const bet: Bet = {
       betType: selectedBet === "pro" ? true : false,
       betAmount: betAmount,
-      userAddress: account!.address,
+      userAddress: address,
       weatherBetId: wBet.id,
     };
 
     setOpen(true);
     console.log(bet);
-    setDialogOpen(false);
 
     toast({
       title: "You are submitting the following values:",
@@ -97,6 +97,9 @@ export default function BetDialog({
         </pre>
       ),
     });
+    setCurrentData(bet);
+
+    setDialogOpen(false);
   };
 
   return (

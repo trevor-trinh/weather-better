@@ -1,4 +1,4 @@
-import { WeatherBet } from "@/lib/types";
+import { Bet, WeatherBet } from "@/lib/types";
 import Image from "next/image";
 import {
   Card,
@@ -21,71 +21,21 @@ import {
 } from "@worldcoin/idkit";
 import verifyWorldId from "@/lib/verifyWorldId";
 import { useToast } from "@/components/ui/use-toast";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
-export default function BetCard(wBet: WeatherBet) {
+export default function BetCard({
+  wBet,
+  openWorldId,
+  setCurrentData,
+}: {
+  wBet: WeatherBet;
+  openWorldId: any;
+  setCurrentData: any;
+}) {
   const [dialogOpen, setDialogOpen] = useState(false);
-  const { setOpen } = useIDKit();
-  const { toast } = useToast();
-
-  const onSuccess = (result: ISuccessResult) => {
-    toast({
-      title: "Sending WorldID Proof to backend...",
-      description: (
-        <pre className="mt-2 w-[340px] rounded-md bg-slate-950 p-4">
-          <code className="text-white">{JSON.stringify(result, null, 2)}</code>
-        </pre>
-      ),
-    });
-
-    handleVerifyWorldId(result);
-  };
-
-  const handleVerifyWorldId = async (result: ISuccessResult) => {
-    try {
-      const verificationResult = await verifyWorldId(
-        result,
-        process.env.NEXT_PUBLIC_WLD_BET_ACTION as string
-      );
-      if (verificationResult.code === "success") {
-        toast({
-          title: "Verified WorldID Proof!",
-          description: (
-            <pre className="mt-2 w-[340px] rounded-md bg-green-700 p-4">
-              <code className="text-white">
-                {JSON.stringify(verificationResult.detail, null, 2)}
-              </code>
-            </pre>
-          ),
-        });
-        // TODO: TRIGGER METAMASK TRANSACTION
-        // router.push("/");
-      } else {
-        toast({
-          variant: "destructive",
-          title: "Failed to verify!",
-          description: (
-            <pre className="mt-2 w-[340px] rounded-md bg-red-700 p-4">
-              <code className="text-white">{verificationResult.detail}</code>
-            </pre>
-          ),
-        });
-      }
-    } catch (error) {
-      console.error("Verification error:", error);
-      // Handle unexpected errors (e.g., network issues)
-    }
-  };
 
   return (
     <>
-      <IDKitWidget
-        app_id={process.env.NEXT_PUBLIC_WLD_APP_ID as `app_${string}`}
-        action={process.env.NEXT_PUBLIC_WLD_BET_ACTION!}
-        verification_level={VerificationLevel.Device}
-        onSuccess={onSuccess}
-      />
-
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogTrigger asChild>
           <Card className="w-full rounded-lg overflow-hidden shadow-md hover:shadow-indigo-500 duration-150 hover:cursor-pointer">
@@ -143,8 +93,9 @@ export default function BetCard(wBet: WeatherBet) {
         <DialogContent className="w-full">
           <BetDialog
             wBet={wBet}
-            setOpen={setOpen}
+            setOpen={openWorldId}
             setDialogOpen={setDialogOpen}
+            setCurrentData={setCurrentData}
           />
         </DialogContent>
       </Dialog>
