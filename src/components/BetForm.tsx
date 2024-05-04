@@ -52,6 +52,8 @@ import {
 } from "wagmi";
 import { abi } from "@/lib/fujiAbi";
 import { config } from "@/lib/config";
+import { writeContracts } from "@wagmi/core/experimental";
+import { fujiContract, fujiUsdc } from "@/lib/utils";
 
 const weatherTypes = ["Sunny", "Rainy", "Cloudy", "Snowy"] as const;
 const cities = [
@@ -70,8 +72,8 @@ const FormSchema = z.object({
   }),
   betAmount: z
     .number()
-    .min(1, {
-      message: "Bet amount must be at least 1 usdc",
+    .min(0.001, {
+      message: "Bet amount must be at least .001 usdc",
     })
     .max(69, {
       message: "Bet amount can be at most 69 usdc",
@@ -142,7 +144,7 @@ export default function BetForm({
           ),
         });
         handleWeb3();
-        // router.push("/");
+        router.push("/");
       } else {
         toast({
           variant: "destructive",
@@ -160,22 +162,10 @@ export default function BetForm({
     }
   };
 
-  //   uint256 _pool_ID, // 测试从100开始
-  //         string calldata _location,
-  //         string calldata _day_time,
-  //         uint256 _weather, // 假设这里传递的是weathers枚举的整数索引
-  //         address _owner_address,
-  //         address _token_address
-
-  const fujiContract = "0xaC161c23B20d59942c1487fB6CAfeDA35FCa4Ed3";
-  const fujiUsdc = "0x5425890298aed601595a70AB815c96711a31Bc65";
-
-  const { writeContract } = useWriteContract();
+  const { writeContractAsync } = useWriteContract();
 
   const handleWeb3 = async () => {
-    // await wallet.connect();
-    console.log("HANDLING WEB3");
-
+    // create pool fuji contract
     const poolId =
       parseInt(Date.now() / 1000) + Math.floor(Math.random() * 1000);
     const location = form.getValues("location");
@@ -183,9 +173,25 @@ export default function BetForm({
     const weather = weatherTypes.indexOf(form.getValues("weather"));
     const ownerAddress = account.address;
     const tokenAddress = fujiUsdc;
+    const weiAmt = form.getValues("betAmount") * 10 ** 6;
 
-    // create pool fuji contract
-    writeContract({
+    console.log(
+      "Creating Fuji Contract Pool",
+      JSON.stringify(
+        {
+          poolId,
+          location,
+          dayTime,
+          weather,
+          ownerAddress,
+          tokenAddress,
+        },
+        null,
+        2
+      )
+    );
+
+    const result = await writeContractAsync({
       abi,
       address: fujiContract,
       functionName: "createPool",
@@ -196,24 +202,21 @@ export default function BetForm({
         BigInt(weather),
         ownerAddress,
         tokenAddress,
+        BigInt(weiAmt),
+        true,
       ],
     });
 
-    // writeContract({
-    //   abi: fujiAbi,
-    //   address: fujiContract,
-    //   functionName: "createPool",
-    // args: [
-    //   BigInt(poolId),
-    //   location,
-    //   dayTime,
-    //   BigInt(weather),
-    //   ownerAddress,
-    //   tokenAddress,
-    // ],
-    // });
+    toast({
+      title: "You have submitted a bet!",
+      description: (
+        <pre className="mt-2 w-[340px] rounded-md bg-slate-950 p-4">
+          <code className="text-white">{JSON.stringify(result, null, 2)}</code>
+        </pre>
+      ),
+    });
 
-    console.log("SUCCESS");
+    console.log("LAST");
   };
 
   return (
@@ -374,11 +377,11 @@ export default function BetForm({
                         field.onChange(vals[0]);
                       }}
                       value={[form.getValues("betAmount")]}
-                      className="col-span-4"
+                      className="col-span-3"
                     />
 
                     <Input
-                      className="col-span-1"
+                      className="col-span-2"
                       type="number"
                       value={form.getValues("betAmount")}
                       max={69}

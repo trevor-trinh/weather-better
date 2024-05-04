@@ -43,7 +43,6 @@ export default function UnlimitButton() {
     }
   };
 
-  console.log("my account", account);
   return (
     <>
       <button

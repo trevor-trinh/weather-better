@@ -35,3 +35,6 @@ export const cities = {
     coords: [37.8716, -122.2728],
   },
 };
+
+export const fujiContract = "0xdC712Cf71c4eEf7030F65fa759c4dA0F4Aeffa40";
+export const fujiUsdc = "0x5425890298aed601595a70AB815c96711a31Bc65";

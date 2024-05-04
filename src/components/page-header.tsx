@@ -40,7 +40,7 @@ export default function PageHeader() {
   }, []);
 
   return (
-    <div className="sticky top-0 z-100 bg-inherit">
+    <div className="sticky top-0 z-100 bg-background">
       <header className="flex justify-between items-center w-full px-8 py-2">
         <nav className="flex gap-8 items-center">
           <Link

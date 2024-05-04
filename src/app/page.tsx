@@ -20,8 +20,10 @@ import {
 import verifyWorldId from "@/lib/verifyWorldId";
 import { useToast } from "@/components/ui/use-toast";
 
-const fujiContract = "0xaC161c23B20d59942c1487fB6CAfeDA35FCa4Ed3";
-const fujiUsdc = "0x5425890298aed601595a70AB815c96711a31Bc65";
+import { useReadContract } from "wagmi";
+import { abi } from "@/lib/fujiAbi";
+
+import { fujiContract, fujiUsdc } from "@/lib/utils";
 
 // 替换为您的 WeatherAPI API 密钥
 const API_KEY = "f58dd287627a480792875942240405";
@@ -70,6 +72,23 @@ const exampleTransactions: WeatherBet[] = [
   },
 ];
 
+type Pool = {
+  day_time: string;
+  location: string;
+  owner_address: string;
+  pool_ID: number;
+  token_address: string;
+  weather: number;
+};
+
+type Record = {
+  amount: number;
+  bool_bet: boolean;
+  chain_ID: number;
+  pool_ID: number;
+  user_address: string;
+};
+
 const fetchWeather = async (location: string) => {
   const encodedLocation = encodeURIComponent(location);
   try {
@@ -87,9 +106,12 @@ export default function Home() {
   const [activeTab, setActiveTab] = useState<"Global" | "Me">("Global");
   const [globalBets, setGlobalBets] = useState<WeatherBet[]>([]);
   const [myBets, setMyBets] = useState<WeatherBet[]>([]);
+
   const account = useAccount();
+
   const { setOpen } = useIDKit();
   const { toast } = useToast();
+
   const [currentData, setCurrentData] = useState<Bet>();
 
   // WORLDCOIN
@@ -142,29 +164,63 @@ export default function Home() {
     }
   };
 
-  // WEB3 LOGIC PART
-  // transfer fuji usdc to contract
-  // const { contract } = useContract(fujiUsdc);
-  // const {
-  //   mutate: transferTokens,
-  //   isLoading,
-  //   error,
-  // } = useTransferToken(contract);
-
-  // const handleWeb3 = async () => {
-  //   console.log("HANDLING WEB3");
-  //   console.log(currentData);
-  //   console.log(fujiContract);
-
-  //   transferTokens({
-  //     to: fujiContract,
-  //     amount: currentData?.betAmount,
-  //   });
-  // };
-
   // FETCHING DATA ENDPOINT
+  const {
+    data: poolsData,
+    isError: poolsError,
+    isLoading: poolsLoading,
+  } = useReadContract({
+    abi,
+    address: fujiContract,
+    functionName: "getAllPools",
+  });
+
+  const {
+    data: recordsData,
+    isError: recordsError,
+    isLoading: recordsLoading,
+  } = useReadContract({
+    abi,
+    address: fujiContract,
+    functionName: "getAllRecords",
+  });
+
   const fetchBets = async () => {
-    // 更新每个交易的实时天气
+    console.log("all datas", poolsData, recordsData);
+
+    const weatherTypes = ["Sunny", "Rainy", "Cloudy", "Snowy"];
+
+    const newPoolData: WeatherBet[] = poolsData.map((pool: Pool) => {
+      return {
+        id: pool.pool_ID.toString(),
+        location: pool.location,
+        date: pool.day_time,
+        weather: weatherTypes[Number(pool.weather)],
+        totalPool: 0,
+        betRatio: 0,
+      };
+    });
+
+    (recordsData as Record[]).map((record: Record) => {
+      const pool = newPoolData.find(
+        (pool) => pool.id === record.pool_ID.toString()
+      );
+      if (pool) {
+        pool.totalPool += Number(record.amount);
+        if (record.bool_bet) {
+          pool.betRatio += Number(record.amount);
+        }
+      }
+    });
+
+    // adjust the ratio to be a percentage
+    newPoolData.forEach((pool) => {
+      pool.betRatio = Math.floor((pool.betRatio / pool.totalPool) * 100);
+      pool.totalPool = pool.totalPool / 10 ** 6;
+    });
+
+    console.log("NEW POOL DATA", newPoolData);
+
     const fetchedBets = await Promise.all(
       exampleTransactions.map(async (tx) => {
         const weather = await fetchWeather(tx.location);
@@ -178,14 +234,14 @@ export default function Home() {
       })
     );
 
-    // 更新 globalBets 和 myBets 状态
-    setGlobalBets(fetchedBets);
-    setMyBets(fetchedBets.filter((tx) => tx.location === "San Francisco, CA"));
+    setGlobalBets([...newPoolData, ...exampleTransactions]);
   };
 
   useEffect(() => {
+    if (!poolsData || !recordsData) return;
+
     fetchBets();
-  }, []);
+  }, [poolsData, recordsData, account.address]);
 
   // 轮播设置
   const sliderSettings = {
