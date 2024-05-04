@@ -52,7 +52,6 @@ import {
 } from "wagmi";
 import { abi } from "@/lib/fujiAbi";
 import { config } from "@/lib/config";
-import { writeContract } from "@wagmi/core";
 
 const weatherTypes = ["Sunny", "Rainy", "Cloudy", "Snowy"] as const;
 const cities = [
@@ -171,7 +170,7 @@ export default function BetForm({
   const fujiContract = "0xaC161c23B20d59942c1487fB6CAfeDA35FCa4Ed3";
   const fujiUsdc = "0x5425890298aed601595a70AB815c96711a31Bc65";
 
-  // const { writeContract } = useWriteContract();
+  const { writeContract } = useWriteContract();
 
   const handleWeb3 = async () => {
     // await wallet.connect();
@@ -186,7 +185,7 @@ export default function BetForm({
     const tokenAddress = fujiUsdc;
 
     // create pool fuji contract
-    const result = await writeContract(config, {
+    writeContract({
       abi,
       address: fujiContract,
       functionName: "createPool",
