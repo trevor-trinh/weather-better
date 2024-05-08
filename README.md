@@ -4,11 +4,14 @@
 
 **WeatherBetter** is a decentralized weather betting Dapp that revolutionizes how users engage with weather forecasts. With our platform, users can bet on the weather of a specific place and date, turning everyday weather predictions into exciting opportunities for profit or pleasant surprises.
 
-## How it Works
+## Demo 🎬
+https://github.com/trevor-trinh/weather-better/assets/50549133/9757acfa-8e2a-47b9-9373-66c1e94e638e
+
+## How it Works 🤔
 
 Imagine you're planning a trip to Sydney in a week, and you're worried about rain ruining your adventure. With WeatherBetter, you can place a bet, like 100 USDC, on rainy weather for that day. If it doesn't rain, you lose your bet but gain a sunny day for your trip. However, if the weather doesn't cooperate, you could win some money to compensate for your ruined plans!
 
-## Key Technologies
+## Key Technologies 🛠️
 
 ### 1. Chainlink's CCIP Technology and Weather Data Feeds
 
@@ -30,35 +33,46 @@ Our project is committed to combating bots and sybil attacks, ensuring that our 
 
 Seamless integration with Unlimit's on/off ramps ensures accessibility for both web2 and web3 users, making WeatherBetter widely accessible and user-friendly.
 
-## Disclaimer
+## Disclaimer ⚠️
 
 WeatherBetter is for entertainment purposes only. Please gamble responsibly and be aware of the risks involved. We do not guarantee the accuracy of weather predictions or the outcome of bets.
 
+## Contributors 🙋‍♂️
 
+- [Stevensu7](https://github.com/Stevensu7)
+- [Albert-Enter](https://github.com/Albert-Enter)  
+- [YoungY620](https://github.com/YoungY620)  
+- [hrzisme](https://github.com/hrzisme)  
+- [ykchong45](https://github.com/ykchong45)  
+- [trevor-trinh](https://github.com/trevor-trinh)  
 
-This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+## Getting Started 🚀
 
-## Getting Started
+### 1. Quick Start Guide
 
-### 1. Have a try
+- **Visit our Website**  
+  Ready to start betting on the weather? Visit our website (https://weather-better.vercel.app/bet) and connect your wallet to get started. Join our community to stay updated on new features, events, and more!
 
-Ready to start betting on the weather? Visit our website (https://weather-better.vercel.app/bet) and connect your wallet to get started. Join our community to stay updated on new features, events, and more!
+### 2. Self-Deployment Instructions
 
-### 2. Self-Deployment
+1. **Install Dependencies**  
+   Use Bun to install the required packages by running:  
+   ```bash
+   bun install
+   ```
 
-First, run the development server:
+2. **Set Up Environment Variables**  
+   Copy the environment variables from `.env.example` into a new file named `.env.local`, and adjust them according to your setup.
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+3. **Run the Development Server**  
+   Start the server using:  
+   ```bash
+   bun dev
+   ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+4. **Access the Application**  
+   Open [http://localhost:3000](http://localhost:3000) in your browser to view the result.
 
-The CCIP contract code was modified based on the official demo. You can modify and replace the original files with those in `contract` to deploy it. For specific deployment parameters, refer to the Chainlink documentation.
+**Note:**  
+The CCIP contract code was modified based on the official demo. Replace the original files with those in the `contract` folder for accurate deployment. For specific deployment parameters, refer to the Chainlink documentation.
 
